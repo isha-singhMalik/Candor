@@ -1,0 +1,209 @@
+// Phase 4 data model. NOT wired into the MVP yet (the MVP stores data in the browser).
+// To activate:  npm i prisma @prisma/client  ->  set DATABASE_URL  ->  npx prisma migrate dev --name init
+// Review before use: this file has not been run against a live database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole { CANDIDATE INSTITUTION_ADMIN PLATFORM_ADMIN }
+enum Plan { FREE PRO INSTITUTION }
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  role          UserRole  @default(CANDIDATE)
+  plan          Plan      @default(FREE)
+  createdAt     DateTime  @default(now())
+  profile       Profile?
+  resumes       Resume[]
+  interviews    Interview[]
+  practicePlans PracticePlan[]
+  memberships   OrganizationMember[]
+  attempts      AssessmentAttempt[]
+  usage         UsageRecord[]
+}
+
+model Profile {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  education       String?
+  degree          String?
+  college         String?
+  gradYear        Int?
+  experience      String
+  targetRole      String
+  targetIndustry  String?
+  targetCompanies String?
+  skills          String[]
+  interviewType   String?
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  fileKey   String?
+  createdAt DateTime @default(now())
+  analyses  ResumeAnalysis[]
+}
+
+model JobDescription {
+  id         String   @id @default(cuid())
+  text       String
+  createdAt  DateTime @default(now())
+  analyses   ResumeAnalysis[]
+  interviews Interview[]
+}
+
+model ResumeAnalysis {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jdId      String?
+  jd        JobDescription? @relation(fields: [jdId], references: [id])
+  role      String
+  overall   Int
+  result    Json
+  engine    String
+  createdAt DateTime @default(now())
+}
+
+model Interview {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jdId        String?
+  jd          JobDescription? @relation(fields: [jdId], references: [id])
+  config      Json
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  questions   InterviewQuestion[]
+  report      InterviewReport?
+  attempt     AssessmentAttempt?
+}
+
+model Question {
+  id              String   @id @default(cuid())
+  category        String
+  difficulty      String
+  role            String[]
+  experienceLevel String[]
+  skills          String[]
+  text            String
+  criteria        String[]
+  followUpRules   String[]
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+  asked           InterviewQuestion[]
+}
+
+model InterviewQuestion {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  bankId      String?
+  bank        Question? @relation(fields: [bankId], references: [id])
+  position    Int
+  text        String
+  category    String
+  response    InterviewResponse?
+}
+
+model InterviewResponse {
+  id         String   @id @default(cuid())
+  questionId String   @unique
+  question   InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer     String
+  seconds    Int
+  viaVoice   Boolean  @default(false)
+  evaluation InterviewEvaluation?
+}
+
+model InterviewEvaluation {
+  id         String   @id @default(cuid())
+  responseId String   @unique
+  response   InterviewResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  criteria   Json
+  score      Int
+  feedback   Json
+  engine     String
+}
+
+model InterviewReport {
+  id          String   @id @default(cuid())
+  interviewId String   @unique
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  overall     Int
+  content     Json
+  createdAt   DateTime @default(now())
+}
+
+model PracticePlan {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Json
+  createdAt DateTime @default(now())
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  createdAt   DateTime @default(now())
+  members     OrganizationMember[]
+  assessments Assessment[]
+  questions   Question[]
+}
+
+model OrganizationMember {
+  id     String @id @default(cuid())
+  orgId  String
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   String
+  batch  String?
+  @@unique([orgId, userId])
+}
+
+model Assessment {
+  id       String   @id @default(cuid())
+  orgId    String
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title    String
+  template Json
+  dueAt    DateTime?
+  attempts AssessmentAttempt[]
+}
+
+model AssessmentAttempt {
+  id           String   @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviewId  String?  @unique
+  interview    Interview? @relation(fields: [interviewId], references: [id])
+  score        Int?
+  @@unique([assessmentId, userId])
+}
+
+model UsageRecord {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kind      String
+  units     Int      @default(1)
+  createdAt DateTime @default(now())
+  @@index([kind, createdAt])
+}
