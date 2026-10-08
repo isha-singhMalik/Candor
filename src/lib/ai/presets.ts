@@ -8,7 +8,7 @@ export interface Preset { kind: "anthropic" | "openai"; baseUrl?: string; model:
 export const PRESETS: Record<string, Preset> = {
   anthropic: { kind: "anthropic", model: "claude-sonnet-5-5" },
   openai: { kind: "openai", model: "" },
-  gemini: { kind: "openai", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash" },
+  gemini: { kind: "openai", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-flash-latest" },
   groq: { kind: "openai", baseUrl: "https://api.groq.com/openai/v1", model: "" },
   openrouter: { kind: "openai", baseUrl: "https://openrouter.ai/api/v1", model: "" },
 };

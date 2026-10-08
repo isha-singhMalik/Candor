@@ -11,7 +11,8 @@ export function getAIProvider(): AIProvider {
   const key = process.env.AI_API_KEY?.trim();
   const name = (process.env.AI_PROVIDER ?? "anthropic").trim().toLowerCase();
   const preset = PRESETS[name];
-  const baseUrl = process.env.AI_BASE_URL?.trim() || preset?.baseUrl;
+  const envBase = process.env.AI_BASE_URL?.trim();
+  const baseUrl = envBase && /^https?:\/\//i.test(envBase) ? envBase : preset?.baseUrl; // ignore junk such as a pasted comment
   const model = process.env.AI_MODEL?.trim() || preset?.model || "";
   const kind = preset?.kind ?? "openai"; // unknown names are treated as a custom OpenAI-compatible host
   const usable = !!key && !!model && (!!preset || !!baseUrl);

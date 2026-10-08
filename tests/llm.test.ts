@@ -185,7 +185,7 @@ describe("provider presets", () => {
   it("gemini works with just a key", async () => {
     process.env.AI_PROVIDER = "gemini"; process.env.AI_API_KEY = "k";
     const p = (await import("@/lib/ai")).getAIProvider();
-    expect(p.mode).toBe("ai"); expect(p.name).toBe("gemini:gemini-2.5-flash");
+    expect(p.mode).toBe("ai"); expect(p.name).toBe("gemini:gemini-flash-latest");
   });
   it("groq needs a model name, otherwise Demo Mode", async () => {
     process.env.AI_PROVIDER = "groq"; process.env.AI_API_KEY = "k";

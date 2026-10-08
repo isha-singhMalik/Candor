@@ -92,7 +92,7 @@ One key powers every AI task. Pick a provider with `AI_PROVIDER`:
 
 | Provider | Cost | Key from | `AI_MODEL` |
 |---|---|---|---|
-| `gemini` | **Free tier, no card** (rate-limited; free-tier prompts may be used by Google to improve its products) | aistudio.google.com/apikey | optional (default `gemini-2.5-flash`) |
+| `gemini` | **Free tier, no card** (rate-limited; free-tier prompts may be used by Google to improve its products) | aistudio.google.com/apikey | optional (default `gemini-flash-latest`) |
 | `groq` | **Free tier, no card** (rate-limited, open models) | console.groq.com/keys | required (run `npm run check:ai` to list) |
 | `openrouter` | Some free models, needs `AI_MODEL` | openrouter.ai | required |
 | `anthropic` | Paid (separate from a Claude.ai subscription) | console.anthropic.com | optional (default `claude-sonnet-5-5`) |
